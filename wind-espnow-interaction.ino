@@ -40,9 +40,7 @@ void onReceive(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
   // メッセージが "Hello" の場合、LEDを点灯
   if (strcmp(receivedMessage, "Hello") == 0) {
     Serial.println("FAN1");
-    digitalWrite(FAN_PIN_1, HIGH);
-    delay(1000);  // 1秒間LEDを点灯
-    digitalWrite(FAN_PIN_1, LOW);
+    windFrom1(600);
   } else if (strcmp(receivedMessage, "wind1") == 0) {
     windFrom1(600);
   } else if (strcmp(receivedMessage, "wind2") == 0) {
@@ -227,12 +225,12 @@ void setup() {
 
 void loop() {
   // メッセージの送信
-  esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)message, strlen(message));
+ /* esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)message, strlen(message));
   if (result == ESP_OK) {
     Serial.println("Message sent");
   } else {
     Serial.println("Message send failed");
-  }
+  }*/
 
   delay(1000);
 }
