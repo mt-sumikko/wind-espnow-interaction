@@ -43,21 +43,57 @@ void onReceive(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
     digitalWrite(FAN_PIN_1, HIGH);
     delay(1000);  // 1秒間LEDを点灯
     digitalWrite(FAN_PIN_1, LOW);
+  } else if (strcmp(receivedMessage, "wind1") == 0) {
+    windFrom1(600);
+  } else if (strcmp(receivedMessage, "wind2") == 0) {
+    windFrom2();
+  } else if (strcmp(receivedMessage, "wind3") == 0) {
+    windFrom3();
+  } else if (strcmp(receivedMessage, "wind4") == 0) {
+    windFrom4();
+  } else if (strcmp(receivedMessage, "wind5") == 0) {
+    windFrom5();
   }
 }
 
 
 
-//LED点灯タスクを渡す変数
-//int ledTask = 0;
-int runningMode = 0;//0:Auto, 1:Interaction, 2:Off
+int runningMode = 0;//稼働モード 0:Auto, 1:Interaction, 2:Test, 3:Off
+int randPos = 0;
+int randInterval = 0;
 
-//LEDの点灯をコントロール
+//
 void windControl(void* arg) {
   while (1) {
     if (runningMode == 0) { //Auto
-      //ledTask = 0;
+      randPos = random(1, 6);//random number from 1 to 5
+      randInterval = random(500, 3000);//random number from 500 to 2999
 
+      switch (randPos) {
+        case 1:
+          windFrom1(randInterval);
+          break;
+        case 2:
+          windFrom2();
+          break;
+        case 3:
+          windFrom3();
+          break;
+        case 4:
+          windFrom4();
+          break;
+        case 5:
+          windFrom5();
+          break;
+        default:
+          break;
+      }
+
+    } else if (runningMode == 1) { //Interaction
+
+
+
+    } else if (runningMode == 2) { //Test
 
       //非受信時のテスト用 START-----
       digitalWrite(FAN_PIN_1, HIGH);
@@ -86,12 +122,7 @@ void windControl(void* arg) {
 
       //非受信時のテスト用 END-----
 
-
-    } else if (runningMode == 1) { //Interaction
-      //ledTask = 0;
-
-
-    } else { //Off
+    } else { //runningMode == 3 Off
       //適度に待つ
       delay(100);
     }
@@ -105,7 +136,7 @@ void modeControl(void* arg) {
 
     // ボタンが押されたらLEDの色を変化させる
     if (M5.Btn.wasPressed()) {
-      Serial.print("Btn Pressed");
+      Serial.print("Btn Pressed. Mode: ");
       Serial.println(change);
       switch (change) {
         case 0:
@@ -117,13 +148,17 @@ void modeControl(void* arg) {
           runningMode =  1;//Interaction
           break;
         case 2:
+          M5.dis.drawpix(0, dispColor(brightness, brightness, 0));//yellow
+          runningMode = 2;//Test
+          break;
+        case 3:
           M5.dis.drawpix(0, dispColor(brightness, 0, 0));//red
-          runningMode = 2;//Off
+          runningMode = 3;//Off
           break;
         default:
           break;
       }
-      if (change >= 2) {
+      if (change >= 3) {
         change = 0;
       } else {
         change++;
@@ -200,4 +235,134 @@ void loop() {
   }
 
   delay(1000);
+}
+
+
+
+void windFrom1(int interval) {
+  digitalWrite(FAN_PIN_1, HIGH);
+  delay(interval);  // 1秒間ファンをを回す
+
+  digitalWrite(FAN_PIN_2, HIGH);
+  delay(interval);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_1, LOW);
+
+  digitalWrite(FAN_PIN_3, HIGH);
+  delay(interval);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_2, LOW);
+
+  digitalWrite(FAN_PIN_4, HIGH);
+  delay(interval);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_3, LOW);
+
+  digitalWrite(FAN_PIN_5, HIGH);
+  delay(interval);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_4, LOW);
+
+  delay(interval);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_5, LOW);
+
+  delay(5000);
+
+}
+
+void windFrom2() {
+  digitalWrite(FAN_PIN_2, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+
+  digitalWrite(FAN_PIN_1, HIGH);
+  digitalWrite(FAN_PIN_3, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_2, LOW);
+
+  digitalWrite(FAN_PIN_4, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_1, LOW);
+  digitalWrite(FAN_PIN_3, LOW);
+
+  digitalWrite(FAN_PIN_5, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_4, LOW);
+
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_5, LOW);
+
+  delay(5000);
+
+}
+
+void windFrom3() {
+  digitalWrite(FAN_PIN_3, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+
+  digitalWrite(FAN_PIN_2, HIGH);
+  digitalWrite(FAN_PIN_4, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_3, LOW);
+
+  digitalWrite(FAN_PIN_1, HIGH);
+  digitalWrite(FAN_PIN_5, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_2, LOW);
+  digitalWrite(FAN_PIN_4, LOW);
+
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_1, LOW);
+  digitalWrite(FAN_PIN_5, LOW);
+
+  delay(5000);
+
+}
+
+void windFrom4() {
+  digitalWrite(FAN_PIN_4, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+
+  digitalWrite(FAN_PIN_3, HIGH);
+  digitalWrite(FAN_PIN_5, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_4, LOW);
+
+  digitalWrite(FAN_PIN_2, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_3, LOW);
+  digitalWrite(FAN_PIN_5, LOW);
+
+  digitalWrite(FAN_PIN_1, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_2, LOW);
+
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_1, LOW);
+
+  delay(5000);
+}
+
+
+
+void windFrom5() {
+  digitalWrite(FAN_PIN_5, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+
+  digitalWrite(FAN_PIN_4, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_5, LOW);
+
+  digitalWrite(FAN_PIN_3, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_4, LOW);
+
+  digitalWrite(FAN_PIN_2, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_3, LOW);
+
+  digitalWrite(FAN_PIN_1, HIGH);
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_2, LOW);
+
+  delay(600);  // 1秒間ファンをを回す
+  digitalWrite(FAN_PIN_1, LOW);
+
+  delay(5000);
+
 }
