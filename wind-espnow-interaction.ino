@@ -2,6 +2,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
+
 //LED -----------
 uint8_t brightness;
 uint8_t change = 1;//起動時Auto, 1回ボタン押したらInteraction Modeになるようにしておく
@@ -21,6 +22,7 @@ CRGB dispColor(uint8_t g, uint8_t r, uint8_t b) {
 
 uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 const char *message = "Hello";
+int receivedDuration = 0;
 
 // 送信コールバック関数
 void onSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -36,22 +38,7 @@ void onReceive(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
   memcpy(receivedMessage, data, data_len);
   receivedMessage[data_len] = '\0';  // 終端文字を追加
   Serial.println(receivedMessage);
-
-  // メッセージが "Hello" の場合、LEDを点灯
-  if (strcmp(receivedMessage, "Hello") == 0) {
-    Serial.println("FAN1");
-    windFrom1(600);
-  } else if (strcmp(receivedMessage, "wind1") == 0) {
-    windFrom1(600);
-  } else if (strcmp(receivedMessage, "wind2") == 0) {
-    windFrom2();
-  } else if (strcmp(receivedMessage, "wind3") == 0) {
-    windFrom3();
-  } else if (strcmp(receivedMessage, "wind4") == 0) {
-    windFrom4();
-  } else if (strcmp(receivedMessage, "wind5") == 0) {
-    windFrom5();
-  }
+  receivedDuration = int(receivedMessage);
 }
 
 
@@ -59,6 +46,7 @@ void onReceive(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
 int runningMode = 0;//稼働モード 0:Auto, 1:Interaction, 2:Test, 3:Off
 int randPos = 0;
 int randInterval = 0;
+
 
 //
 void windControl(void* arg) {
@@ -72,16 +60,16 @@ void windControl(void* arg) {
           windFrom1(randInterval);
           break;
         case 2:
-          windFrom2();
+          windFrom2(randInterval);
           break;
         case 3:
-          windFrom3();
+          windFrom3(randInterval);
           break;
         case 4:
-          windFrom4();
+          windFrom4(randInterval);
           break;
         case 5:
-          windFrom5();
+          windFrom5(randInterval);
           break;
         default:
           break;
@@ -90,39 +78,61 @@ void windControl(void* arg) {
     } else if (runningMode == 1) { //Interaction
 
 
+      randPos = random(1, 6);//random number from 1 to 5
+      int mappedDuration = map(receivedDuration, 0, 128, 500, 3000);
+
+      switch (randPos) {
+        case 1:
+          windFrom1(mappedDuration);
+          break;
+        case 2:
+          windFrom2(mappedDuration);
+          break;
+        case 3:
+          windFrom3(mappedDuration);
+          break;
+        case 4:
+          windFrom4(mappedDuration);
+          break;
+        case 5:
+          windFrom5(mappedDuration);
+          break;
+        default:
+          break;
+      }
+
+
 
     } else if (runningMode == 2) { //Test
 
-      //非受信時のテスト用 START-----
+      //単純に右から左へ　ランダム性なし
       digitalWrite(FAN_PIN_1, HIGH);
-      delay(600);  // 1秒間ファンをを回す
+      delay(600);
 
       digitalWrite(FAN_PIN_2, HIGH);
-      delay(600);  // 1秒間ファンをを回す
+      delay(600);
       digitalWrite(FAN_PIN_1, LOW);
 
       digitalWrite(FAN_PIN_3, HIGH);
-      delay(600);  // 1秒間ファンをを回す
+      delay(600);
       digitalWrite(FAN_PIN_2, LOW);
 
       digitalWrite(FAN_PIN_4, HIGH);
-      delay(600);  // 1秒間ファンをを回す
+      delay(600);
       digitalWrite(FAN_PIN_3, LOW);
 
       digitalWrite(FAN_PIN_5, HIGH);
-      delay(600);  // 1秒間ファンをを回す
+      delay(600);
       digitalWrite(FAN_PIN_4, LOW);
 
-      delay(600);  // 1秒間ファンをを回す
+      delay(600);
       digitalWrite(FAN_PIN_5, LOW);
 
       delay(8000);
 
-      //非受信時のテスト用 END-----
-
     } else { //runningMode == 3 Off
       //適度に待つ
-      delay(100);
+      delay(1000);
     }
   }
 }
@@ -225,12 +235,12 @@ void setup() {
 
 void loop() {
   // メッセージの送信
- /* esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)message, strlen(message));
-  if (result == ESP_OK) {
-    Serial.println("Message sent");
-  } else {
-    Serial.println("Message send failed");
-  }*/
+  /* esp_err_t result = esp_now_send(broadcastAddress, (uint8_t *)message, strlen(message));
+    if (result == ESP_OK) {
+     Serial.println("Message sent");
+    } else {
+     Serial.println("Message send failed");
+    }*/
 
   delay(1000);
 }
@@ -239,128 +249,128 @@ void loop() {
 
 void windFrom1(int interval) {
   digitalWrite(FAN_PIN_1, HIGH);
-  delay(interval);  // 1秒間ファンをを回す
+  delay(interval);  // interval ms間ファンをを回す
 
   digitalWrite(FAN_PIN_2, HIGH);
-  delay(interval);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_1, LOW);
 
   digitalWrite(FAN_PIN_3, HIGH);
-  delay(interval);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_2, LOW);
 
   digitalWrite(FAN_PIN_4, HIGH);
-  delay(interval);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_3, LOW);
 
   digitalWrite(FAN_PIN_5, HIGH);
-  delay(interval);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_4, LOW);
 
-  delay(interval);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_5, LOW);
 
-  delay(5000);
+  delay(3000);
 
 }
 
-void windFrom2() {
+void windFrom2(int interval) {
   digitalWrite(FAN_PIN_2, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
 
   digitalWrite(FAN_PIN_1, HIGH);
   digitalWrite(FAN_PIN_3, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_2, LOW);
 
   digitalWrite(FAN_PIN_4, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_1, LOW);
   digitalWrite(FAN_PIN_3, LOW);
 
   digitalWrite(FAN_PIN_5, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_4, LOW);
 
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_5, LOW);
 
-  delay(5000);
+  delay(3000);
 
 }
 
-void windFrom3() {
+void windFrom3(int interval) {
   digitalWrite(FAN_PIN_3, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
 
   digitalWrite(FAN_PIN_2, HIGH);
   digitalWrite(FAN_PIN_4, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_3, LOW);
 
   digitalWrite(FAN_PIN_1, HIGH);
   digitalWrite(FAN_PIN_5, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_2, LOW);
   digitalWrite(FAN_PIN_4, LOW);
 
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_1, LOW);
   digitalWrite(FAN_PIN_5, LOW);
 
-  delay(5000);
+  delay(3000);
 
 }
 
-void windFrom4() {
+void windFrom4(int interval) {
   digitalWrite(FAN_PIN_4, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
 
   digitalWrite(FAN_PIN_3, HIGH);
   digitalWrite(FAN_PIN_5, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_4, LOW);
 
   digitalWrite(FAN_PIN_2, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_3, LOW);
   digitalWrite(FAN_PIN_5, LOW);
 
   digitalWrite(FAN_PIN_1, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_2, LOW);
 
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_1, LOW);
 
-  delay(5000);
+  delay(3000);
+
 }
 
 
 
-void windFrom5() {
+void windFrom5(int interval) {
   digitalWrite(FAN_PIN_5, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
 
   digitalWrite(FAN_PIN_4, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_5, LOW);
 
   digitalWrite(FAN_PIN_3, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_4, LOW);
 
   digitalWrite(FAN_PIN_2, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_3, LOW);
 
   digitalWrite(FAN_PIN_1, HIGH);
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_2, LOW);
 
-  delay(600);  // 1秒間ファンをを回す
+  delay(interval);
   digitalWrite(FAN_PIN_1, LOW);
 
-  delay(5000);
-
+  delay(3000);
 }
