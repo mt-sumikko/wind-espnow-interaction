@@ -37,8 +37,10 @@ void onReceive(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
   char receivedMessage[data_len + 1];
   memcpy(receivedMessage, data, data_len);
   receivedMessage[data_len] = '\0';  // 終端文字を追加
-  Serial.println(receivedMessage);
-  receivedDuration = int(receivedMessage);
+  Serial.print(receivedMessage);
+  receivedDuration = atoi(receivedMessage);
+  Serial.print(", to Int: ");
+   Serial.println(receivedDuration);
 }
 
 
@@ -76,10 +78,13 @@ void windControl(void* arg) {
       }
 
     } else if (runningMode == 1) { //Interaction
-
-
+      Serial.println("runningMode == 1 start");
       randPos = random(1, 6);//random number from 1 to 5
       int mappedDuration = map(receivedDuration, 0, 128, 500, 3000);
+      Serial.print("case: ");
+      Serial.print(randPos);
+      Serial.print(", mappedDuration: ");
+      Serial.println(mappedDuration);
 
       switch (randPos) {
         case 1:
@@ -100,8 +105,6 @@ void windControl(void* arg) {
         default:
           break;
       }
-
-
 
     } else if (runningMode == 2) { //Test
 
